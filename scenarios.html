@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fan to Fanatic Scenarios</title>
+<meta name="description" content="Put six fan scenarios in order from totally normal to something's wrong.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<style>
+  :root {
+    --bg: #f4f1ea;
+    --card: #ffffff;
+    --ink: #1b1b1f;
+    --muted: #6b6a70;
+    --line: #e2ddd2;
+    --accent: #5b3df5;
+    --accent-soft: #ece8ff;
+    --good: #1f9d6b;
+    --hot: #e0365a;
+    --radius: 16px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121216;
+      --card: #1c1c22;
+      --ink: #f1f0f4;
+      --muted: #9c9aa6;
+      --line: #2e2d36;
+      --accent: #8c78ff;
+      --accent-soft: #29243f;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
+    padding: 0 16px 64px;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; }
+
+  nav { display: flex; gap: 8px; padding-top: 20px; flex-wrap: wrap; }
+  nav a {
+    font-size: 14px; font-weight: 600; text-decoration: none;
+    color: var(--muted); padding: 6px 14px; border-radius: 99px;
+    border: 1.5px solid var(--line);
+  }
+  nav a[aria-current="page"] { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+  header { padding: 28px 0 16px; }
+  .eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-family: "Space Grotesk", sans-serif; font-size: clamp(32px, 7vw, 48px); line-height: 1.05; margin: 8px 0 12px; }
+  .lede { color: var(--muted); margin: 0; font-size: 17px; }
+
+  .scale-end {
+    display: flex; align-items: center; gap: 8px;
+    font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 15px;
+    margin: 20px 0 8px;
+  }
+  .scale-end .chip { width: 12px; height: 12px; border-radius: 50%; }
+  .scale-end.top .chip { background: var(--good); }
+  .scale-end.bottom .chip { background: var(--hot); }
+  .scale-end.bottom { margin: 8px 0 0; }
+
+  .list-wrap { position: relative; padding-left: 18px; }
+  .list-wrap::before {
+    content: ""; position: absolute; left: 0; top: 6px; bottom: 6px; width: 6px; border-radius: 99px;
+    background: linear-gradient(180deg, var(--good), #c7b72a, #e0820b, var(--hot));
+  }
+  ol#cards { list-style: none; margin: 0; padding: 0; }
+  .card {
+    display: flex; align-items: stretch; gap: 0;
+    background: var(--card);
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    margin: 10px 0;
+    touch-action: none;
+  }
+  .handle {
+    flex: none; width: 44px; display: grid; place-items: center;
+    color: var(--muted); cursor: grab; border-right: 1px solid var(--line);
+    font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 18px;
+  }
+  .handle:active { cursor: grabbing; }
+  .text { flex: 1; padding: 14px; font-size: 16px; }
+  .moves { flex: none; display: flex; flex-direction: column; border-left: 1px solid var(--line); }
+  .moves button {
+    flex: 1; width: 40px; border: 0; background: transparent; color: var(--muted);
+    font-size: 16px; cursor: pointer;
+  }
+  .moves button:hover { color: var(--accent); }
+  .moves button:disabled { opacity: .25; cursor: default; }
+  .moves button:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+  .moves button + button { border-top: 1px solid var(--line); }
+  .sortable-ghost { opacity: .35; }
+  .sortable-chosen .card, .card.sortable-chosen { border-color: var(--accent); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+  .locked .handle { cursor: default; }
+  .locked .moves { display: none; }
+
+  .actions { margin-top: 24px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    font: 600 16px Inter, sans-serif; background: var(--accent); color: #fff;
+    border: 0; border-radius: 99px; padding: 12px 24px; cursor: pointer;
+  }
+  .btn.secondary { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+  .hint { text-align: center; color: var(--muted); font-size: 14px; margin-top: 10px; }
+
+  .panel {
+    display: none;
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 22px; margin-top: 24px;
+  }
+  .panel h2 { font-family: "Space Grotesk", sans-serif; font-size: 22px; margin: 0 0 10px; }
+  .panel ul { margin: 0; padding-left: 20px; }
+  .panel li { margin: 8px 0; }
+  .compare { list-style: none; padding: 0 !important; }
+  .compare li { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--line); margin: 0 !important; }
+  .compare li:first-child { border-top: 0; }
+  .compare .n {
+    flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 14px;
+  }
+  .compare .why { color: var(--muted); font-size: 14px; display: block; margin-top: 2px; }
+  .compare .yours { font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+  .note { color: var(--muted); font-size: 14px; margin-top: 12px; }
+
+  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 48px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a href="./">Chronically Online Quiz</a>
+    <a href="scenarios.html" aria-current="page">Fan to Fanatic</a>
+  </nav>
+
+  <header>
+    <div class="eyebrow">Group activity</div>
+    <h1>Fan to Fanatic Scenarios</h1>
+    <p class="lede">As a group, put all six cards in order from <strong>"totally normal"</strong> at the top to <strong>"something's wrong"</strong> at the bottom. Drag a card by its number, or use the arrows.</p>
+  </header>
+
+  <div class="scale-end top"><span class="chip"></span>Totally normal</div>
+  <div class="list-wrap"><ol id="cards"></ol></div>
+  <div class="scale-end bottom"><span class="chip"></span>Something's wrong</div>
+
+  <div class="actions" id="mainActions">
+    <button class="btn" id="lockBtn">Lock in our order</button>
+    <button class="btn secondary" id="shuffleBtn">Shuffle</button>
+  </div>
+
+  <section class="panel" id="discuss" aria-live="polite">
+    <h2>Talk it over</h2>
+    <ul>
+      <li>Where did your group disagree the most? Which two cards were hardest to separate?</li>
+      <li>Find the point on your list where "fan" turns into "fanatic." What changed?</li>
+      <li>Which cards affect only you, and which ones affect the creator or other people?</li>
+      <li>Have you ever felt like a creator was your friend? What makes that feeling so strong online?</li>
+    </ul>
+    <div class="actions">
+      <button class="btn" id="revealBtn">Compare with one possible order</button>
+      <button class="btn secondary" id="editBtn">Change our order</button>
+    </div>
+  </section>
+
+  <section class="panel" id="suggested" aria-live="polite">
+    <h2>One possible order</h2>
+    <ol class="compare" id="compareList"></ol>
+    <p class="note">This isn't the "right answer." Reasonable groups put these in different orders. What matters is why.</p>
+  </section>
+
+  <footer>Made for class.</footer>
+</div>
+
+<script>
+// Listed in one possible order, least to most concerning.
+const SCENARIOS = [
+  { id: "mall",
+    text: "At the mall, you see an influencer you follow. You're excited but you don't say anything to them and just tell your friends about it later.",
+    why: "Excited, but respects their space. Nothing is taken from anyone." },
+  { id: "autograph",
+    text: "You wait in line at a game to get your favorite athlete's autograph. When they sign your jersey, your hands are shaking. You talk about it for weeks.",
+    why: "Big feelings, but in a space made for meeting fans, and the athlete chose to be there." },
+  { id: "comiccon",
+    text: "Your favorite actor is at a local comic-con. You buy a ticket, wait in line for two hours, and when you finally meet them, you're genuinely emotional.",
+    why: "A real cost in time and money, but still an event set up for exactly this." },
+  { id: "money",
+    text: "You spend money you don't really have on a subscription or donation to a streamer because it feels like supporting a friend.",
+    why: "The “friend” feeling is one-sided, and it's starting to hurt you." },
+  { id: "tracking",
+    text: "A musician you follow is in your city. From their stories, you figure out where they've been posting from and go to those places, hoping to run into them and get a selfie.",
+    why: "Using their posts to find them in private life. This crosses into their safety." },
+  { id: "block",
+    text: "You create fake social media accounts to get around a creator's block, or you start messaging their family members and friends to get closer to them.",
+    why: "They said no, and this ignores it and pulls in people who never signed up. This is harassment." }
+];
+
+const list = document.getElementById("cards");
+let locked = false;
+
+function shuffled(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  // never start in the suggested order
+  return a.every((s, i) => s.id === SCENARIOS[i].id) ? shuffled(arr) : a;
+}
+
+function render(order) {
+  list.innerHTML = "";
+  order.forEach(s => {
+    const li = document.createElement("li");
+    li.className = "card";
+    li.dataset.id = s.id;
+    li.innerHTML = `
+      <div class="handle" aria-hidden="true"></div>
+      <div class="text">${s.text}</div>
+      <div class="moves">
+        <button type="button" class="up" aria-label="Move up">&#9650;</button>
+        <button type="button" class="down" aria-label="Move down">&#9660;</button>
+      </div>`;
+    li.querySelector(".up").addEventListener("click", () => move(li, -1));
+    li.querySelector(".down").addEventListener("click", () => move(li, 1));
+    list.appendChild(li);
+  });
+  refresh();
+}
+
+function move(li, dir) {
+  if (locked) return;
+  if (dir < 0 && li.previousElementSibling) list.insertBefore(li, li.previousElementSibling);
+  if (dir > 0 && li.nextElementSibling) list.insertBefore(li.nextElementSibling, li);
+  refresh();
+  li.querySelector(dir < 0 ? ".up" : ".down").focus();
+}
+
+function refresh() {
+  [...list.children].forEach((li, i, all) => {
+    li.querySelector(".handle").textContent = i + 1;
+    li.querySelector(".up").disabled = i === 0;
+    li.querySelector(".down").disabled = i === all.length - 1;
+  });
+}
+
+const sortable = Sortable.create(list, {
+  handle: ".handle",
+  animation: 160,
+  ghostClass: "sortable-ghost",
+  onEnd: refresh
+});
+
+function currentOrder() { return [...list.children].map(li => li.dataset.id); }
+
+document.getElementById("shuffleBtn").addEventListener("click", () => render(shuffled(SCENARIOS)));
+
+document.getElementById("lockBtn").addEventListener("click", () => {
+  locked = true;
+  sortable.option("disabled", true);
+  list.classList.add("locked");
+  document.getElementById("mainActions").style.display = "none";
+  const d = document.getElementById("discuss");
+  d.style.display = "block";
+  d.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+document.getElementById("editBtn").addEventListener("click", () => {
+  locked = false;
+  sortable.option("disabled", false);
+  list.classList.remove("locked");
+  document.getElementById("mainActions").style.display = "flex";
+  document.getElementById("discuss").style.display = "none";
+  document.getElementById("suggested").style.display = "none";
+});
+
+document.getElementById("revealBtn").addEventListener("click", () => {
+  const mine = currentOrder();
+  const ol = document.getElementById("compareList");
+  ol.innerHTML = "";
+  SCENARIOS.forEach((s, i) => {
+    const yourPos = mine.indexOf(s.id) + 1;
+    const li = document.createElement("li");
+    li.innerHTML = `<span class="n">${i + 1}</span>
+      <span style="flex:1">${s.text}<span class="why">${s.why}</span></span>
+      <span class="yours">You: #${yourPos}</span>`;
+    ol.appendChild(li);
+  });
+  const p = document.getElementById("suggested");
+  p.style.display = "block";
+  p.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+render(shuffled(SCENARIOS));
+</script>
+</body>
+</html>
