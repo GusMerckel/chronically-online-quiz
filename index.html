@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How Chronically Online Are You?</title>
+<meta name="description" content="A 10-question quiz. Pick your answers, get your score.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f1ea;
+    --card: #ffffff;
+    --ink: #1b1b1f;
+    --muted: #6b6a70;
+    --line: #e2ddd2;
+    --accent: #5b3df5;
+    --accent-soft: #ece8ff;
+    --good: #1f9d6b;
+    --warn: #e0820b;
+    --hot: #e0365a;
+    --radius: 16px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121216;
+      --card: #1c1c22;
+      --ink: #f1f0f4;
+      --muted: #9c9aa6;
+      --line: #2e2d36;
+      --accent: #8c78ff;
+      --accent-soft: #29243f;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
+    padding: 0 16px 64px;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; }
+  header { padding: 48px 0 24px; }
+  .eyebrow {
+    font-size: 13px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  h1 {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: clamp(32px, 7vw, 48px);
+    line-height: 1.05; margin: 8px 0 12px;
+  }
+  .lede { color: var(--muted); margin: 0; font-size: 17px; }
+
+  /* progress */
+  .progress {
+    position: sticky; top: 0; z-index: 5;
+    background: var(--bg);
+    padding: 12px 0;
+  }
+  .bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .bar span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s ease; }
+  .progress small { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; }
+
+  /* questions */
+  .q {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px;
+    margin: 16px 0;
+  }
+  .q-num { font-size: 13px; font-weight: 600; color: var(--muted); }
+  .q h2 {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 20px; line-height: 1.25; margin: 4px 0 16px;
+  }
+  .opt {
+    display: flex; gap: 12px; align-items: flex-start;
+    width: 100%; text-align: left;
+    background: transparent; color: inherit; font: inherit;
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px; margin-top: 10px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .opt:hover { border-color: var(--accent); }
+  .opt:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .opt .dot {
+    flex: none; width: 20px; height: 20px; margin-top: 2px;
+    border: 2px solid var(--line); border-radius: 50%;
+    display: grid; place-items: center;
+  }
+  .opt[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); }
+  .opt[aria-checked="true"] .dot { border-color: var(--accent); }
+  .opt[aria-checked="true"] .dot::after {
+    content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent);
+  }
+
+  /* submit + result */
+  .actions { margin-top: 24px; text-align: center; }
+  .btn {
+    font: 600 17px Inter, sans-serif;
+    background: var(--accent); color: #fff;
+    border: 0; border-radius: 99px;
+    padding: 14px 28px; cursor: pointer;
+  }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn.secondary { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+  .hint { color: var(--muted); font-size: 14px; margin-top: 10px; }
+
+  #result { display: none; }
+  .result-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 28px 22px;
+    margin-top: 24px;
+    text-align: center;
+  }
+  .score {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 72px; font-weight: 700; line-height: 1;
+  }
+  .score small { font-size: 24px; color: var(--muted); }
+  .tier {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 26px; margin: 12px 0 8px;
+  }
+  .tier-desc { color: var(--muted); max-width: 480px; margin: 0 auto; }
+  .meter { margin: 24px auto 4px; max-width: 480px; }
+  .meter-track {
+    position: relative; height: 12px; border-radius: 99px;
+    background: linear-gradient(90deg, var(--good), #c7b72a, var(--warn), var(--hot));
+  }
+  .meter-pin {
+    position: absolute; top: -6px; width: 4px; height: 24px;
+    background: var(--ink); border-radius: 2px; transform: translateX(-50%);
+    transition: left .6s ease;
+  }
+  .meter-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  .breakdown { text-align: left; margin-top: 24px; border-top: 1px solid var(--line); padding-top: 16px; }
+  .breakdown h3 { font-size: 15px; margin: 0 0 8px; }
+  .breakdown ol { margin: 0; padding-left: 22px; }
+  .breakdown li { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; font-size: 15px; }
+  .breakdown li span:last-child { font-weight: 600; white-space: nowrap; }
+  .pts-0 { color: var(--good); }
+  .pts-1 { color: #a69a12; }
+  .pts-2 { color: var(--warn); }
+  .pts-3 { color: var(--hot); }
+  @media (prefers-color-scheme: dark) { .pts-1 { color: #d8c946; } }
+
+  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 48px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Quiz</div>
+    <h1>How Chronically Online Are You?</h1>
+    <p class="lede">Ten questions. Pick the answer that's most honestly you. No judgment. (Some judgment.)</p>
+  </header>
+
+  <div class="progress" aria-live="polite">
+    <div class="bar"><span id="barFill"></span></div>
+    <small id="progressText">0 of 10 answered</small>
+  </div>
+
+  <main id="quiz"></main>
+
+  <div class="actions">
+    <button class="btn" id="submitBtn" disabled>See my score</button>
+    <div class="hint" id="hint">Answer all 10 questions to see your score.</div>
+  </div>
+
+  <section id="result" aria-live="polite">
+    <div class="result-card">
+      <div class="score"><span id="scoreNum">0</span><small> / 30</small></div>
+      <div class="tier" id="tierName"></div>
+      <p class="tier-desc" id="tierDesc"></p>
+      <div class="meter">
+        <div class="meter-track"><div class="meter-pin" id="pin"></div></div>
+        <div class="meter-labels"><span>Touches grass</span><span>Is the grass</span></div>
+      </div>
+      <div class="breakdown">
+        <h3>Your points by question</h3>
+        <ol id="breakdownList"></ol>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn secondary" id="retryBtn">Take it again</button>
+    </div>
+  </section>
+
+  <footer>Made for class. Close the tab and go outside.</footer>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "You find out some news. Where did you hear it first?",
+    short: "Where you hear news",
+    a: [
+      "A friend told me in person.",
+      "An online newspaper, news app, TV show, or radio broadcast.",
+      "A joke or meme on social media.",
+      "A screenshot of a reaction to a now-deleted post by an online creator who shared it to their story."
+    ]
+  },
+  {
+    q: "It's a beautiful day outside. The sun is shining. Birds are chirping. You:",
+    short: "A beautiful day",
+    a: [
+      "Go outside and enjoy it.",
+      "Open a window.",
+      "See a post about the weather and think, “Oh, nice!”",
+      "Experience the sunlight exclusively through the reflected light on my phone screen, which makes it hard to watch my video and annoys me."
+    ]
+  },
+  {
+    q: "An influencer you follow gets into a public feud with another influencer. How involved do you get?",
+    short: "Influencer feuds",
+    a: [
+      "I don't follow any influencers.",
+      "I might see a post about it and move on.",
+      "I read the whole thing, pick a side, and explain the drama to at least one person who didn't ask.",
+      "I know the full timeline and details, including all the subtexts, betrayals, and alliances. I have opinions about side characters in the feud. My knowledge could be used in a jury trial. I have spent emotional energy on this that I have not spent on some of my own friendships."
+    ]
+  },
+  {
+    q: "Have you ever watched someone else play a video game instead of playing the video game yourself?",
+    short: "Watching others play",
+    a: [
+      "No. Why would I do that?",
+      "Once or twice, just to see if I wanted to play it.",
+      "I regularly watch livestreams and watch parties of games I enjoy but would never buy.",
+      "I have watched someone play through an entire video game series that I already own and could be playing."
+    ]
+  },
+  {
+    q: "You're at a birthday party with some friends and family. At what point do you check your phone?",
+    short: "Phone at a party",
+    a: [
+      "Only if I get a call.",
+      "If there's a natural lull.",
+      "Within the first 15 minutes, under the table so nobody notices. (Everybody notices.)",
+      "I am physically present at the party, but I am fused to my phone. My body is just a vessel for absorbing new content online. If someone asks what I'm looking at, I will say “nothing” as I continue to doomscroll."
+    ]
+  },
+  {
+    q: "How much of your sense of humor comes from the internet?",
+    short: "Internet sense of humor",
+    a: [
+      "Very little—I'm funny on my own, thank you.",
+      "Some references here and there.",
+      "A significant amount. And I have experienced the pain of making a joke that absolutely destroys online but lands to dead silence in a room of my classmates.",
+      "Essentially all of it. My humor requires a shared database of memes, internet slang, and elite “ball” knowledge that most people could never fathom."
+    ]
+  },
+  {
+    q: "How do you feel when your phone dies?",
+    short: "When your phone dies",
+    a: [
+      "Fine. I'll charge it when I get home.",
+      "Mildly inconvenienced. What if someone needs to reach me?",
+      "A wave of genuine anxiety washes over me. What am I supposed to do with my hands? My eyes? My time?",
+      "I have never let this happen. I carry a portable charger like it's a vital organ in a cooler. My phone has not dipped below 30% since 2022. I have charging cables in locations throughout my home."
+    ]
+  },
+  {
+    q: "Someone uses a slang word you've never heard before. What do you do?",
+    short: "New slang",
+    a: [
+      "Ask them what it means right then and there.",
+      "Look it up online later.",
+      "I already know every slang word because I absorb new slang from the internet approximately six to eight weeks before it reaches spoken conversation.",
+      "I don't just know the word, I know its full etymological history from its original use in a viral video to the moment a news anchor used it wrong on live television and killed it forever."
+    ]
+  },
+  {
+    q: "How often do you close an app and then immediately reopen it?",
+    short: "Close, reopen, repeat",
+    a: [
+      "I don't think I've ever done that.",
+      "Maybe once or twice when I was bored and waiting for something.",
+      "Multiple times a day. I close an app, stare at my home screen for two seconds like a lost NPC, and then open the app again as if new content has materialized in the four seconds since I left.",
+      "I am trapped in a loop. I close one app, open another, close that one, open a new one, close that … rinse and repeat. I'm not looking for anything. I will not stop."
+    ]
+  },
+  {
+    q: "Have you ever created or consumed fan-made content (fanfiction, fan art, edits, etc.)?",
+    short: "Fan-made content",
+    a: [
+      "What's fanfiction?",
+      "I've stumbled onto some fan art or a story once out of curiosity. I thought, “Huh. People really do this,” and moved on with my life.",
+      "I'm deep in it. I've read fanfic that was better than the source material and watched edits that made me feel things the show never did.",
+      "I have written fanfic, drawn fan art, and made edits that delivered more emotional validation than anything I've ever turned in for a grade. I am both the audience and the industry. I cannot explain this to anyone without sounding unhinged."
+    ]
+  }
+];
+
+// Points = answer position (0, 1, 2, 3), matching the handout.
+const TIERS = [
+  { max: 7,  name: "Certified Grass Toucher", desc: "You live in the physical world and it shows. People probably tell you things in person. Wild." },
+  { max: 15, name: "Casual Scroller", desc: "You're online, but you can still log off. You know the memes; they don't run your life." },
+  { max: 23, name: "Extremely Online", desc: "The internet is a big part of how you think, talk, and laugh. Maybe go look at a tree today." },
+  { max: 30, name: "Chronically Online", desc: "You are not on the internet. You are the internet. Please put this phone down after you finish reading this." }
+];
+
+const quizEl = document.getElementById("quiz");
+const answers = new Array(QUESTIONS.length).fill(null);
+
+QUESTIONS.forEach((item, qi) => {
+  const card = document.createElement("section");
+  card.className = "q";
+  card.innerHTML = `<div class="q-num">Question ${qi + 1} of ${QUESTIONS.length}</div><h2 id="q${qi}">${item.q}</h2>`;
+  const group = document.createElement("div");
+  group.setAttribute("role", "radiogroup");
+  group.setAttribute("aria-labelledby", "q" + qi);
+  item.a.forEach((text, ai) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "opt";
+    b.setAttribute("role", "radio");
+    b.setAttribute("aria-checked", "false");
+    b.innerHTML = `<span class="dot"></span><span>${text}</span>`;
+    b.addEventListener("click", () => choose(qi, ai, group, card));
+    group.appendChild(b);
+  });
+  card.appendChild(group);
+  quizEl.appendChild(card);
+});
+
+function choose(qi, ai, group, card) {
+  answers[qi] = ai;
+  [...group.children].forEach((b, i) => b.setAttribute("aria-checked", i === ai ? "true" : "false"));
+  updateProgress();
+  // gently move to the next unanswered question
+  const next = card.nextElementSibling;
+  if (next && answers[qi + 1] === null) {
+    setTimeout(() => next.scrollIntoView({ behavior: "smooth", block: "center" }), 180);
+  }
+}
+
+function updateProgress() {
+  const done = answers.filter(a => a !== null).length;
+  document.getElementById("barFill").style.width = (done / QUESTIONS.length * 100) + "%";
+  document.getElementById("progressText").textContent = `${done} of ${QUESTIONS.length} answered`;
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = done < QUESTIONS.length;
+  document.getElementById("hint").style.visibility = btn.disabled ? "visible" : "hidden";
+}
+
+document.getElementById("submitBtn").addEventListener("click", () => {
+  const total = answers.reduce((s, a) => s + a, 0);
+  const tier = TIERS.find(t => total <= t.max);
+  document.getElementById("scoreNum").textContent = total;
+  document.getElementById("tierName").textContent = tier.name;
+  document.getElementById("tierDesc").textContent = tier.desc;
+  const list = document.getElementById("breakdownList");
+  list.innerHTML = "";
+  QUESTIONS.forEach((item, i) => {
+    const li = document.createElement("li");
+    const p = answers[i];
+    li.innerHTML = `<span>${i + 1}. ${item.short}</span><span class="pts-${p}">${p} ${p === 1 ? "point" : "points"}</span>`;
+    list.appendChild(li);
+  });
+  const result = document.getElementById("result");
+  result.style.display = "block";
+  const pin = document.getElementById("pin");
+  pin.style.left = "0%";
+  requestAnimationFrame(() => requestAnimationFrame(() => { pin.style.left = (total / 30 * 100) + "%"; }));
+  result.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+document.getElementById("retryBtn").addEventListener("click", () => {
+  answers.fill(null);
+  document.querySelectorAll(".opt").forEach(b => b.setAttribute("aria-checked", "false"));
+  document.getElementById("result").style.display = "none";
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+updateProgress();
+</script>
+</body>
+</html>
